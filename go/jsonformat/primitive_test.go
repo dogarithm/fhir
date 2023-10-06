@@ -15,10 +15,10 @@
 package jsonformat
 
 import (
-	"encoding/json"
 	"strconv"
 	"testing"
 
+	"github.com/goccy/go-json"
 	"github.com/google/fhir/go/fhirversion"
 	"github.com/google/fhir/go/jsonformat/internal/accessor"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
@@ -333,8 +333,8 @@ func TestDecimal(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.value, func(t *testing.T) {
 			expects := map[fhirversion.Version]proto.Message{
-				fhirversion.STU3:  &d3pb.Decimal{Value: test.value},
-				fhirversion.R4:    &d4pb.Decimal{Value: test.value},
+				fhirversion.STU3: &d3pb.Decimal{Value: test.value},
+				fhirversion.R4:   &d4pb.Decimal{Value: test.value},
 			}
 			for _, ver := range test.vers {
 				e := expects[ver]
@@ -375,8 +375,8 @@ func TestDecimal_Invalid(t *testing.T) {
 	}
 	for _, test := range tests {
 		msgs := map[fhirversion.Version]proto.Message{
-			fhirversion.STU3:  &d3pb.Decimal{},
-			fhirversion.R4:    &d4pb.Decimal{},
+			fhirversion.STU3: &d3pb.Decimal{},
+			fhirversion.R4:   &d4pb.Decimal{},
 		}
 		for _, ver := range test.vers {
 			if err := parseDecimal(json.RawMessage(test.json), msgs[ver]); err == nil {

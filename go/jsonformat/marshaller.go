@@ -16,10 +16,10 @@ package jsonformat
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/goccy/go-json"
 	"github.com/google/fhir/go/fhirversion"
 	"github.com/google/fhir/go/jsonformat/internal/accessor"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
@@ -27,8 +27,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	apb "github.com/google/fhir/go/proto/google/fhir/proto/annotations_go_proto"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 // jsonFormat is the format in which the marshaller will represent the FHIR

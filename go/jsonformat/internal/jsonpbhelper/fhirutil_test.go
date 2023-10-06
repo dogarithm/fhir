@@ -15,13 +15,13 @@
 package jsonpbhelper
 
 import (
-	"encoding/json"
 	"errors"
 	"regexp"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"

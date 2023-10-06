@@ -15,11 +15,11 @@
 package jsonformat
 
 import (
-	"encoding/json"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/google/fhir/go/jsonformat/internal/accessor"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/proto"

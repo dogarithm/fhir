@@ -16,10 +16,10 @@ package jsonformat
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/goccy/go-json"
 	"github.com/google/fhir/go/fhirversion"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
 	"github.com/google/go-cmp/cmp"
@@ -28,7 +28,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	c4pb "github.com/google/fhir/go/proto/google/fhir/proto/r4/core/codes_go_proto"
 	d4pb "github.com/google/fhir/go/proto/google/fhir/proto/r4/core/datatypes_go_proto"
 	r4binarypb "github.com/google/fhir/go/proto/google/fhir/proto/r4/core/resources/binary_go_proto"
@@ -43,6 +42,7 @@ import (
 	d3pb "github.com/google/fhir/go/proto/google/fhir/proto/stu3/datatypes_go_proto"
 	m3pb "github.com/google/fhir/go/proto/google/fhir/proto/stu3/metadatatypes_go_proto"
 	r3pb "github.com/google/fhir/go/proto/google/fhir/proto/stu3/resources_go_proto"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 // TODO(b/135148603): Find a better way to maintain the versioned unit tests.

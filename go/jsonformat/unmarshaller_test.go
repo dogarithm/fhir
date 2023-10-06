@@ -16,7 +16,6 @@ package jsonformat
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -31,6 +30,7 @@ import (
 	"runtime"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
+	"github.com/goccy/go-json"
 	"github.com/google/fhir/go/fhirversion"
 	"github.com/google/fhir/go/jsonformat/errorreporter"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
@@ -84,6 +84,7 @@ var (
 	_, b, _, _ = runtime.Caller(0)
 	callerRoot = filepath.Dir(b)
 )
+
 // getRootPath returns the root bazel runfiles path if running in a bazel
 // environment, otherwise it will return the root path of the FHIR proto
 // repository. Typically this is used to access files such as testdata.
@@ -91,8 +92,8 @@ var (
 // exist, and if not, report an error.
 func getRootPath() string {
 	var root string
- 	root, err := bazel.RunfilesPath()
- 	if err != nil {
+	root, err := bazel.RunfilesPath()
+	if err != nil {
 		// Fall back to the non-bazel way to get to the root directory.
 		root = callerRoot + "/../../"
 	}

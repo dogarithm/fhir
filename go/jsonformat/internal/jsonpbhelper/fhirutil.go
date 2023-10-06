@@ -16,7 +16,6 @@
 package jsonpbhelper
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -28,10 +27,12 @@ import (
 	"unicode/utf8"
 
 	"log"
-	"github.com/json-iterator/go"
+
+	"bitbucket.org/creachadair/stringset"
+	"github.com/goccy/go-json"
+	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"bitbucket.org/creachadair/stringset"
 
 	apb "github.com/google/fhir/go/proto/google/fhir/proto/annotations_go_proto"
 

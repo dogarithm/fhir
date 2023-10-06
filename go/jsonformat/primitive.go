@@ -16,11 +16,11 @@ package jsonformat
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 
+	"github.com/goccy/go-json"
 	"github.com/google/fhir/go/jsonformat/internal/accessor"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
 	"github.com/google/fhir/go/jsonformat/internal/protopath"
