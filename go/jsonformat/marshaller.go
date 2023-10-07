@@ -15,11 +15,11 @@
 package jsonformat
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
+	"github.com/go-json-experiment/json"
 	"github.com/google/fhir/go/fhirversion"
 	"github.com/google/fhir/go/jsonformat/internal/accessor"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
@@ -27,8 +27,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	anypb "google.golang.org/protobuf/types/known/anypb"
 	apb "github.com/google/fhir/go/proto/google/fhir/proto/annotations_go_proto"
+	anypb "google.golang.org/protobuf/types/known/anypb"
 )
 
 // jsonFormat is the format in which the marshaller will represent the FHIR
@@ -185,20 +185,19 @@ func (m *Marshaller) Marshal(pb proto.Message) ([]byte, error) {
 }
 
 func (m *Marshaller) render(data jsonpbhelper.IsJSON) ([]byte, error) {
-	// We continue to use json instead of jsoniter for serialization because jsoniter has a bug in
-	// how it creates streams from its shared pool. The consequence of this is that indentation gets
-	// reset at every level.
-	buf := bytes.Buffer{}
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	if m.enableIndent {
-		enc.SetIndent(m.prefix, m.indent)
+	return json.Marshal(data, json.DefaultOptionsV2())
+}
+
+func (m *Marshaller) MarshalWrite(out io.Writer, pb proto.Message) error {
+	pbTypeName := pb.ProtoReflect().Descriptor().FullName()
+	emptyCR := m.cfg.newEmptyContainedResource()
+	expTypeName := emptyCR.ProtoReflect().Descriptor().FullName()
+	if pbTypeName != expTypeName {
+		return fmt.Errorf("type mismatch, given proto is a message of type: %v, marshaller expects message of type: %v", pbTypeName, expTypeName)
 	}
-	if err := enc.Encode(data); err != nil {
-		return nil, err
-	}
-	// Encode seems to always have a trailing newline.
-	return bytes.TrimSuffix(buf.Bytes(), []byte("\n")), nil
+
+	err := json.MarshalWrite(out, pb, json.DefaultOptionsV2())
+	return err
 }
 
 // MarshalResource functions identically to Marshal, but accepts a fhir.Resource
