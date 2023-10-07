@@ -195,8 +195,11 @@ func (m *Marshaller) MarshalWrite(out io.Writer, pb proto.Message) error {
 	if pbTypeName != expTypeName {
 		return fmt.Errorf("type mismatch, given proto is a message of type: %v, marshaller expects message of type: %v", pbTypeName, expTypeName)
 	}
-
-	err := json.MarshalWrite(out, pb, json.DefaultOptionsV2())
+	data, err := m.marshal(pb.ProtoReflect())
+	if err != nil {
+		return err
+	}
+	err = json.MarshalWrite(out, data, json.DefaultOptionsV2())
 	return err
 }
 
