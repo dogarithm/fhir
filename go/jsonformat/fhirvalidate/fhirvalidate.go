@@ -25,15 +25,18 @@ import (
 	"net/url"
 	"strings"
 
+	"bitbucket.org/creachadair/stringset"
 	"github.com/google/fhir/go/jsonformat/errorreporter"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
+	"golang.org/x/exp/slices"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"bitbucket.org/creachadair/stringset"
 
 	apb "github.com/google/fhir/go/proto/google/fhir/proto/annotations_go_proto"
 	d4pb "github.com/google/fhir/go/proto/google/fhir/proto/r4/core/datatypes_go_proto"
+	r4pb "github.com/google/fhir/go/proto/google/fhir/proto/r4/core/resources/bundle_and_contained_resource_go_proto"
 	d3pb "github.com/google/fhir/go/proto/google/fhir/proto/stu3/datatypes_go_proto"
+	r3pb "github.com/google/fhir/go/proto/google/fhir/proto/stu3/resources_go_proto"
 )
 
 var (
@@ -124,6 +127,22 @@ func validateReferenceTypes(fd protoreflect.FieldDescriptor, msg protoreflect.Me
 	return jsonpbhelper.ValidateReferenceMessageType(fd, msg)
 }
 
+func validateOneOfs(fd protoreflect.FieldDescriptor, msg protoreflect.Message, opts validationOptions) error {
+	ict := proto.GetExtension(msg.Descriptor().Options(), apb.E_IsChoiceType).(bool)
+	if ict {
+		fn := fd.Name()
+		if msg.Descriptor().Oneofs().Len() != 1 {
+			return fmt.Errorf("Choice type must have exactly one oneof: %v", fd.FullName())
+		}
+		od := msg.Descriptor().Oneofs().Get(0)
+		fd := msg.WhichOneof(od)
+		if fd == nil {
+			return fmt.Errorf("no oneof set in choice type %v", fn)
+		}
+	}
+	return nil
+}
+
 func validateReferenceTypesWithErrorReporter(fd protoreflect.FieldDescriptor, msg protoreflect.Message, jsonPath string, errorReporter errorreporter.ErrorReporter) error {
 	var errors jsonpbhelper.UnmarshalErrorList
 	if err := validateReferenceTypes(fd, msg, validationOptions{}); err != nil {
@@ -202,6 +221,31 @@ func validateStringPrimitiveRegex(msg protoreflect.Message) bool {
 	return jsonpbhelper.RegexValues[msg.Descriptor().FullName()].MatchString(val)
 }
 
+func ValidateContainer(msg proto.Message, opts ...ValidationOption) error {
+	pb := msg.ProtoReflect()
+	r3 := proto.Message(&r3pb.ContainedResource{}).ProtoReflect().Descriptor().Name()
+	r4 := proto.Message(&r4pb.ContainedResource{}).ProtoReflect().Descriptor().Name()
+
+	if !slices.Contains([]protoreflect.Name{r3, r4}, pb.Descriptor().Name()) {
+		return fmt.Errorf("unexpected resource type: %v", pb.Descriptor().Name())
+	}
+
+	od := pb.Descriptor().Oneofs().ByName(jsonpbhelper.OneofName)
+
+	if od == nil {
+		return fmt.Errorf("no field is set in the oneof")
+	}
+	resourceField := pb.WhichOneof(od)
+	if resourceField == nil {
+		return fmt.Errorf("no field is set in the oneof")
+	}
+	if resourceField.Message() == nil {
+		return fmt.Errorf("unexpected oneof field kind: %v", resourceField.Kind())
+	}
+
+	return Validate(msg, opts...)
+}
+
 // Validate a FHIR msg against the rules defined in the FHIR spec. See package
 // description for what is included.
 func Validate(msg proto.Message, opts ...ValidationOption) error {
@@ -209,6 +253,7 @@ func Validate(msg proto.Message, opts ...ValidationOption) error {
 		validatePrimitives,
 		validateRequiredFields,
 		validateReferenceTypes,
+		validateOneOfs,
 	}
 	return walkMessage(msg.ProtoReflect(), nil, "", validationSteps, opts...)
 }
