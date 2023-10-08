@@ -20,6 +20,8 @@ import (
 	"strings"
 
 	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
+	v1 "github.com/go-json-experiment/json/v1"
 	"github.com/google/fhir/go/fhirversion"
 	"github.com/google/fhir/go/jsonformat/internal/accessor"
 	"github.com/google/fhir/go/jsonformat/internal/jsonpbhelper"
@@ -185,10 +187,17 @@ func (m *Marshaller) Marshal(pb proto.Message) ([]byte, error) {
 }
 
 func (m *Marshaller) render(data jsonpbhelper.IsJSON) ([]byte, error) {
-	return json.Marshal(data, json.DefaultOptionsV2())
+	if m.enableIndent {
+		return json.Marshal(data, v1.DefaultOptionsV1(),
+			jsontext.EscapeForHTML(false),
+			jsontext.WithIndentPrefix(m.prefix),
+			jsontext.WithIndent(m.indent))
+	} else {
+		return json.Marshal(data, v1.DefaultOptionsV1(), jsontext.EscapeForHTML(false))
+	}
 }
 
-func (m *Marshaller) MarshalWrite(out io.Writer, pb proto.Message) error {
+func (m *Marshaller) MarshalWrite(out io.Writer, pb proto.Message, opts ...json.Options) error {
 	pbTypeName := pb.ProtoReflect().Descriptor().FullName()
 	emptyCR := m.cfg.newEmptyContainedResource()
 	expTypeName := emptyCR.ProtoReflect().Descriptor().FullName()
@@ -199,7 +208,7 @@ func (m *Marshaller) MarshalWrite(out io.Writer, pb proto.Message) error {
 	if err != nil {
 		return err
 	}
-	err = json.MarshalWrite(out, data, json.DefaultOptionsV2())
+	err = json.MarshalWrite(out, data, opts...)
 	return err
 }
 
